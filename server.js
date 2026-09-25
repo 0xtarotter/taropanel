@@ -24,6 +24,7 @@ const { execFile } = require('child_process');
 const {binary}=require('./platform');
 
 const ROOT = __dirname;
+const APP_VERSION = require('./package.json').version;
 const PUBLIC_DIR = path.join(ROOT, 'public');
 const STATE_ROOT = path.resolve(process.env.PANEL_STATE_DIR || ROOT);
 fs.mkdirSync(STATE_ROOT,{recursive:true,mode:0o700});
@@ -383,7 +384,7 @@ const server = http.createServer(async (req, res) => {
   // 静态资源
   if (req.method === 'GET' && (p === '/' || p === '/index.html')) {
     try {
-      const html = fs.readFileSync(path.join(PUBLIC_DIR, 'index.html'));
+      const html = fs.readFileSync(path.join(PUBLIC_DIR, 'index.html'), 'utf8').replaceAll('{{APP_VERSION}}', APP_VERSION);
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store', 'X-Frame-Options':'DENY', 'Referrer-Policy':'no-referrer' });
       res.end(html);
     } catch {

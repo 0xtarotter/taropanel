@@ -1,6 +1,6 @@
 {
   "name": "taropanel",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": true,
   "description": "Linux 服务、Docker、Compose、防火墙、流量与 Web SSH 管理面板",
   "license": "MIT",
