@@ -13,6 +13,6 @@ cp public/index.html "$stage/taropanel/public/"
 # Only static source assets; generated third-party bundles are rebuilt from package-lock.json.
 for file in public/assets/*; do case "$(basename "$file")" in xterm.js|xterm.css|xterm-fit.js|xterm-LICENSE.txt|xterm-fit-LICENSE.txt) continue;; esac; cp "$file" "$stage/taropanel/public/assets/"; done
 node scripts/audit-release.cjs "$stage/taropanel"
-tar --sort=name --mtime=@0 --owner=0 --group=0 --numeric-owner -czf "dist/taropanel-$version.tar.gz" -C "$stage" taropanel
+tar --sort=name --mtime=@0 --owner=0 --group=0 --numeric-owner --mode=u+rwX,go+rX,go-w -czf "dist/taropanel-$version.tar.gz" -C "$stage" taropanel
 (cd dist; sha256sum "taropanel-$version.tar.gz" > "taropanel-$version.tar.gz.sha256")
 echo "Created dist/taropanel-$version.tar.gz"
