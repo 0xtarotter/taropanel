@@ -9,6 +9,18 @@
 - Web SSH 交互式终端，支持窗口缩放、移动端快捷键、二次密码验证、会话退出和空闲断开。
 - 安装时询问网页端口（默认 **80**），检查占用；升级备份，运行数据与程序分离。
 
+## 文档导航
+
+| 文档 | 内容 |
+| --- | --- |
+| [部署指南](docs/DEPLOYMENT.md) | 一键安装、参数、Release 包、HTTPS 和安装验收 |
+| [使用教程](docs/USER_GUIDE.md) | 页面层级、Docker/Compose、防火墙、流量与 Web SSH |
+| [平台兼容表](docs/COMPATIBILITY.md) | CPU、发行版、浏览器及实际验证范围 |
+| [运维与故障排查](docs/OPERATIONS.md) | 升级、备份、密码重置、配置和卸载 |
+| [开源声明](docs/OPEN_SOURCE.md) | MIT、第三方组件、字体许可与发布隐私 |
+| [贡献指南](CONTRIBUTING.md) | 开发、测试与提交要求 |
+| [更新记录](CHANGELOG.md) | 各版本变化 |
+
 ## 一键安装
 
 ```bash
@@ -28,7 +40,7 @@ SSH 默认使用调用 sudo 的现有用户，直接以 root 安装时使用 roo
 
 已有自定义 Node.js 时可用 `PANEL_NODE=/绝对路径/node` 指定（同目录需有 npm）；也可用 `PANEL_HOST=127.0.0.1` 仅监听本机。
 
-自动化首次安装可用 `--yes --password-stdin` 从标准输入读取密码；不要把密码写在命令行参数或提交到仓库。安装脚本默认从本仓库 `main` 获取代码，可用 `TAROPANEL_REF=v1.0.0` 固定版本。
+自动化首次安装可用 `--yes --password-stdin` 从标准输入读取密码；不要把密码写在命令行参数或提交到仓库。安装脚本默认从本仓库 `main` 获取代码，可用 `TAROPANEL_REF=v1.0.1` 固定版本。
 
 ## 系统和架构
 
