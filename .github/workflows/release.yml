@@ -2,6 +2,9 @@ name: Release
 on:
   push:
     tags: ['v*']
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 permissions:
   contents: write
 jobs:
@@ -18,6 +21,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           if ! gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
-            gh release create "$GITHUB_REF_NAME" --generate-notes --title "TaroPanel $GITHUB_REF_NAME"
+            gh release create "$GITHUB_REF_NAME" --generate-notes --title "TaroPanel $GITHUB_REF_NAME" || gh release view "$GITHUB_REF_NAME"
           fi
           gh release upload "$GITHUB_REF_NAME" dist/* --clobber
