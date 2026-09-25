@@ -1,0 +1,20 @@
+'use strict';
+(()=>{
+ let terminal=null,fit=null,socket=null,observer=null;
+ window.panelSSHClose=()=>{observer?.disconnect();observer=null;if(socket){socket.onclose=null;socket.onmessage=null;socket.onerror=null;socket.close();socket=null}terminal?.dispose();terminal=null;fit=null};
+ window.panelSSHView=async current=>{
+  const d=await api('/api/ssh/status');if(!current())return;
+  $('#operations-view').innerHTML=`<section class="ops-panel"><div class="section-title"><h2>本机 SSH 终端</h2><span class="status" id="ssh-state">未连接</span></div>${d.enabled?`<p class="ops-note">连接账户：${esc(d.username)} · 本机 SSH。连接前请验证面板密码。离开页面或退出登录会断开终端，空闲 15 分钟自动断开。</p><form id="ssh-connect-form" class="ops-row"><label>面板密码<input id="ssh-password" type="password" autocomplete="current-password" required maxlength="1024"></label><button class="btn primary" id="ssh-connect">连接终端</button><button class="btn" type="button" id="ssh-disconnect" disabled>断开</button></form><div class="ops-actions ssh-keys"><button class="btn" data-ssh-key="ctrl-c">Ctrl+C</button><button class="btn" data-ssh-key="tab">Tab</button><button class="btn" data-ssh-key="esc">Esc</button><button class="btn" data-ssh-key="up">↑</button><button class="btn" data-ssh-key="down">↓</button></div><div id="ssh-terminal" aria-label="SSH 交互终端"></div>`:`<p class="ops-note">${esc(d.msg||'未配置 Web SSH，请运行安装程序启用。')}</p>`}<p id="ssh-message" class="ops-note" role="status"></p></section>`;
+  if(!d.enabled)return;
+  const status=(text,connected=false)=>{if(!current())return;$('#ssh-state').textContent=text;$('#ssh-state').className='status '+(connected?'running':'');$('#ssh-disconnect').disabled=!connected;$('#ssh-connect').disabled=connected;$('#ssh-password').disabled=connected};
+  function resize(){if(!terminal||!fit||!socket||socket.readyState!==WebSocket.OPEN)return;fit.fit();socket.send(JSON.stringify({type:'resize',cols:Math.min(500,Math.max(2,terminal.cols)),rows:Math.min(300,Math.max(2,terminal.rows))}))}
+  $('#ssh-disconnect').onclick=()=>{window.panelSSHClose();status('已断开')};
+  $('#ssh-connect-form').onsubmit=async e=>{e.preventDefault();$('#ssh-connect').disabled=true;$('#ssh-message').textContent='正在验证…';const password=$('#ssh-password').value;$('#ssh-password').value='';try{const d=await api('/api/ssh/ticket','POST',{password});if(!current())return;window.panelSSHClose();$('#ssh-terminal').replaceChildren();terminal=new Terminal({cursorBlink:true,convertEol:false,scrollback:3000,fontSize:14,fontFamily:'ui-monospace,Consolas,monospace',theme:{background:'#0b1018',foreground:'#dce4ef'}});fit=new FitAddon.FitAddon();terminal.loadAddon(fit);terminal.open($('#ssh-terminal'));fit.fit();const url=new URL('/api/ssh/socket',location.href);url.protocol=location.protocol==='https:'?'wss:':'ws:';url.searchParams.set('ticket',d.ticket);socket=new WebSocket(url);status('连接中…',true);$('#ssh-message').textContent='';
+   terminal.onData(data=>{if(socket?.readyState===WebSocket.OPEN)for(let i=0;i<data.length;i+=4096)socket.send(JSON.stringify({type:'input',data:data.slice(i,i+4096)}))});
+   socket.onmessage=event=>{if(!current())return;const msg=JSON.parse(event.data);if(msg.type==='data'){const bytes=Uint8Array.from(atob(msg.data),c=>c.charCodeAt(0));terminal?.write(bytes)}else if(msg.type==='ready'){status('已连接',true);resize();terminal?.focus()}else $('#ssh-message').textContent=msg.data};
+   socket.onclose=()=>{if(current()){status('已断开');$('#ssh-message').textContent=$('#ssh-message').textContent||'连接已断开，可重新验证密码连接。'}observer?.disconnect()};socket.onerror=()=>{if(current())$('#ssh-message').textContent='SSH 连接失败，请检查网络或本机 SSH 服务。'};
+   observer=new ResizeObserver(()=>resize());observer.observe($('#ssh-terminal'));
+  }catch(e){if(current()){status('未连接');$('#ssh-message').textContent=e.message}}};
+  const keys={'ctrl-c':'\x03',tab:'\t',esc:'\x1b',up:'\x1b[A',down:'\x1b[B'};document.querySelectorAll('[data-ssh-key]').forEach(b=>b.onclick=()=>{if(socket?.readyState===WebSocket.OPEN){socket.send(JSON.stringify({type:'input',data:keys[b.dataset.sshKey]}));terminal?.focus()}});
+ };
+})();
